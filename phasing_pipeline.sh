@@ -33,7 +33,7 @@ RG_PU="L001"
 HAPLOTYPE_SCRIPT="haplotype_reconstruction.py"
 TEMP_VCF_SUFFIX=".unphased.vcf.gz"
 FILTERED_VCF_SUFFIX=".filtered.vcf.gz" # Temporary filtered VCF (PASS)
-FINAL_VCF_SUFFIX=".phased.vcf.gz"
+FINAL_VCF_SUFFIX=".filtered.phased.vcf.gz"
 IMBALANCE_REPORT_SUFFIX=".imbalanced_report.txt"
 ALL_VARIANTS_REPORT_SUFFIX=".all_variants_filter_report.txt"
 
