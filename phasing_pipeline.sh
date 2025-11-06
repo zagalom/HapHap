@@ -584,8 +584,9 @@ echo "------------------------------------------------------"
 echo "3. Consolidating all haplotypes into a FASTA per gene..."
 echo "------------------------------------------------------"
 
-# Added || true in case the python script fails due to lack of output (but output should be generated)
-python ${HAPLOTYPE_SCRIPT} --consolidate_all ${RESULTS_DIR} || true
+# Added ${GENES_FASTA} as the second argument, assuming the script
+# (haplotype_reconstruction.py) needs it to know which genes to consolidate.
+python ${HAPLOTYPE_SCRIPT} --consolidate_all ${RESULTS_DIR} ${GENES_FASTA} || true
 
 echo "------------------------------------------------------"
 echo "PIPELINE COMPLETE! Final FASTA files per gene are in $RESULTS_DIR."
