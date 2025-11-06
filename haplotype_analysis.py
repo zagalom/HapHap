@@ -20,7 +20,7 @@ translation_table = CodonTable.unambiguous_dna_by_id[1]
 # === HELPER FUNCTIONS ===
 def translate_with_trim(seq):
     """
-    Translate a nucleotide sequence using yeast code (table 12).
+    Translate a nucleotide sequence using Standard code (table 1).
     Stops translation at the first internal stop codon, returning '*' and
     truncating the resulting protein sequence at that point.
     """
