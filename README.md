@@ -184,6 +184,80 @@ python haplotype_analysis.py HapHap_results/ ref_genes.fasta HapHap_annotation_o
 **Note:**  
 Run this as the final step, after generating phased haplotypes (FASTA) with the upstream pipeline.
 
+## Full HapHap Pipeline Overview
+
+The **HapHap** pipeline is designed for comprehensive analysis of diploid sequencing data, supporting studies with dozens of genes and hundreds of isolates.  
+It enables researchers to trace each mutation from DNA to its protein effect across all samples.
+
+### Workflow Steps
+
+1. **Phasing and Haplotype Reconstruction**  
+   _Script:_ `phasing_pipeline.sh`  
+   - **Input:**  
+     - Raw paired-end FASTQ reads  
+     - Reference gene FASTA (`genes.fasta`)
+   - **Workflow:**  
+     - Read mapping (BWA + SAMtools)
+     - Variant calling (GATK)
+     - Variant filtering (bcftools)
+     - Phasing (WhatsHap)
+     - Extraction of phased haplotype sequences (FASTA) per gene/isolate
+   - **Output:**  
+     - Quality-filtered & phased VCFs
+     - Per-gene, per-sample haplotype FASTA files
+
+2. **Nucleotide-Level Variant Annotation**  
+   _Script:_ `haplotype_reconstruction.py`  
+   - **Purpose:** Annotates all phased haplotypes, comparing to reference at the DNA sequence level. Can be used separately.
+   - **Input:**  
+     - Per-gene haplotype FASTA  
+     - Reference gene FASTA
+   - **Output:**  
+     - Per-gene annotation tables (nucleotide changes)
+     - Summary reports
+
+3. **Population-scale Protein Effect Analysis**  
+   _Script:_ `haplotype_analysis.py`  
+   - **Purpose:** Aggregates all isolates’ haplotype data by gene, predicting protein-level consequences of each mutation (substitution, indel, frameshift)
+   - **Highlights:**  
+     - Works across the whole population and every gene in one run.
+     - Supports custom genetic code—crucial for mitochondria, fungi, etc.
+   - **Input:**  
+     - Directory of all per-gene haplotype FASTA files  
+     - Reference CDS FASTA (same as above)
+     - (Optional) translation table number (e.g., `--transl_table 2`)
+   - **Output:**  
+     - For each gene:
+       - CSV mutation tables (AA changes, zygosity for each isolate)
+       - Report files (protein alignments, mutation annotations)
+
+### Final Outputs
+
+- **Per-gene, per-isolate variant profiles,** including protein effects (AA substitutions, indels, frameshift) and zygosity
+- **Mutation tables and reports** ready for population genetics, clinical analytics, or publication
+
+### Figure: Pipeline Flow (optional for README)
+```
+[FASTQ samples]
+      |
+      v
+[phasing_pipeline.sh]
+      |
+      v
+[phased haplotype FASTAs/VCFs] ---> [haplotype_reconstruction.py] (DNA-level variant summary, optional)
+                                   |
+                                   v
+                [haplotype_analysis.py]
+                                   |
+                                   v
+  [Gene-by-gene mutation tables + protein effect annotation]
+```
+
+---
+
+_The HapHap pipeline brings together robust variant detection, read-backed phasing, and true functional annotation, making it ideal for population studies, rare variant discovery, or clinical comparative genomics._
+
+
 **Developed by @zagalom**  
 See LICENSE for MIT terms. For questions/issues/collaborations, please open an issue.
 
