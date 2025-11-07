@@ -263,8 +263,10 @@ See LICENSE for MIT terms. For questions/issues/collaborations, please open an i
 
 ## Citation & Contact
 
-Developed by [@zagalom](https://github.com/zagalom)  
+Developed by [@zagalom](https://github.com/zagalom)  If you use HapHap, please cite the repository.
 For questions, bug reports, or collaborations, please open [an issue](https://github.com/zagalom/HapHap/issues).
+
+> (Manuscript in preparation).
 
 ---
 
