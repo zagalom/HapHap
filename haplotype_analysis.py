@@ -41,14 +41,10 @@ GENETIC_CODES = {
     33: "Cephalodiscidae Mitochondrial UAA-Tyr Code",
 }
 
-# Load BLOSUM62 matrix using the modern Biopython module
 BLOSUM62 = substitution_matrices.load("BLOSUM62")
 
-# The translation_table will be defined in main() according to user choice.
-
-# === HELPER FUNCTIONS ===
 def translate_with_trim(seq):
-    """
+        """
     Translate a nucleotide sequence using the selected genetic code.
     Stops translation at the first internal stop codon, returning '*' and
     truncating the resulting protein sequence at that point.
@@ -74,7 +70,7 @@ def translate_with_trim(seq):
 
 
 def get_sort_key(variant_string):
-    """
+        """
     Helper function to extract the first integer (position) from a variant string
     for numerical sorting of output columns (e.g., G159V -> 159).
     """
@@ -95,7 +91,7 @@ def get_sort_key(variant_string):
 
 
 def get_variants_from_alignment(ref_nt, hap_nt, hap_id):
-    """
+        """
     Performs a robust two-step alignment (NT then Protein) to identify variants.
     1. Nucleotide alignment checks for frameshifts.
     2. Protein alignment checks for substitutions and in-frame indels.
@@ -103,11 +99,13 @@ def get_variants_from_alignment(ref_nt, hap_nt, hap_id):
     Returns: (variants, aligned_ref_protein, aligned_hap_protein)
     """
     variants = set()
+    # NOTE: pairwise2 returns list of tuples (seqA, seqB, score, begin, end)
     nt_alignments = pairwise2.align.globalms(ref_nt, hap_nt, 2, -1, -10, -1)
     if not nt_alignments:
         return variants, "", ""
 
-    aln_ref_nt, aln_hap_nt = nt_alignments[0].seqA, nt_alignments[0].seqB
+    # unpack tuple safely
+    aln_ref_nt, aln_hap_nt = nt_alignments[0][0], nt_alignments[0][1]
 
     ref_nt_pos = 0
     in_indel = False
@@ -157,7 +155,8 @@ def get_variants_from_alignment(ref_nt, hap_nt, hap_id):
     if not prot_alignments:
         return variants, ref_protein, hap_protein
 
-    aln_ref_prot, aln_hap_prot = prot_alignments[0].seqA, prot_alignments[0].seqB
+    # unpack protein alignment tuple
+    aln_ref_prot, aln_hap_prot = prot_alignments[0][0], prot_alignments[0][1]
 
     aa_pos = 0
     i = 0
@@ -194,7 +193,7 @@ def get_variants_from_alignment(ref_nt, hap_nt, hap_id):
                     is_first = False
                     i += 1
 
-                del_start_aa = del_seq[0]
+                del_start_aa = del_seq[0] if del_seq else '?'
 
                 if len(del_seq) == 1:
                     variants.add(f"{del_start_aa}{del_start_pos}del")
@@ -226,11 +225,18 @@ def get_variants_from_alignment(ref_nt, hap_nt, hap_id):
 
 
 def extract_isolate_id(header):
-    first_word = header.split()[0]
-    parts = re.split(r'_Haplotype[12]_', first_word, maxsplit=1)
-    if len(parts) > 1:
-        return parts[1].split("_")[0]
-    return "Unknown"
+    """
+    Extracts the isolate ID from a header of type:
+        <gene>_Haplotype1_<isolate_id>
+        or <gene>_Haplotype2_<isolate_id>
+    Keeps underscores present in the isolate_id (e.g., A_19_3).
+    """
+    first_word = header.split()[0]  # só a primeira "palavra" do header
+    m = re.search(r'_(?:Haplotype[12])_(.+)$', first_word)
+    if m:
+        return m.group(1)
+    # fallback: se não bater com o padrão esperado, devolve a primeira palavra inteira
+    return first_word
 
 
 def parse_args():
@@ -238,35 +244,11 @@ def parse_args():
         description="Analyze phased haplotype FASTA files against a reference sequence to identify protein-level variants (substitutions, indels, and frameshifts).",
         formatter_class=argparse.RawTextHelpFormatter
     )
-    parser.add_argument(
-        'input_dir',
-        type=str,
-        help="Directory containing the haplotype FASTA files (e.g., 'ERG11.fasta', 'GSC1.fasta')."
-    )
-    parser.add_argument(
-        'reference_file',
-        type=str,
-        help="Path to the single FASTA file containing all reference CDS sequences."
-    )
-    parser.add_argument(
-        'output_dir',
-        type=str,
-        help="Directory where the output CSV tables and text reports will be saved."
-    )
-    parser.add_argument(
-        '--transl_table',
-        type=int,
-        default=1,
-        choices=GENETIC_CODES.keys(),
-        help=(
-            "Genetic code table number (default: 1).\n"
-            "Available codes:\n" +
-            "\n".join(f"    {k}: {v}" for k, v in GENETIC_CODES.items()) +
-            "\nSee https://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi for details."
-        )
-    )
+    parser.add_argument('input_dir', type=str, help="Directory containing the haplotype FASTA files")
+    parser.add_argument('reference_file', type=str, help="Path to the single FASTA file containing all reference CDS sequences.")
+    parser.add_argument('output_dir', type=str, help="Directory where the output CSV tables and text reports will be saved.")
+    parser.add_argument('--transl_table', type=int, default=1, choices=GENETIC_CODES.keys(), help="Genetic code table number (default: 1).")
     return parser.parse_args()
-
 
 # === MAIN PIPELINE ===
 def main():
@@ -282,14 +264,11 @@ def main():
     print(f" Reference File: {REFERENCE_FILE}")
     print(f" Output Directory: {OUTPUT_DIR}\n")
 
-    # Print translation table selection
     print(f" Translation Table: {transl_table_id} ({GENETIC_CODES[transl_table_id]})\n")
 
-    # Set translation_table GLOBAL for use by helpers
     global translation_table
     translation_table = CodonTable.unambiguous_dna_by_id[transl_table_id]
 
-    # Load reference sequences
     try:
         ref_records = SeqIO.to_dict(SeqIO.parse(REFERENCE_FILE, "fasta"))
     except FileNotFoundError:
@@ -305,7 +284,13 @@ def main():
             continue
 
         gene_name = fasta_file.replace(".fasta", "")
-        ref_seq = str(ref_records.get(gene_name, Seq("")).seq).upper()
+
+        # safer retrieval of reference sequence:
+        ref_rec = ref_records.get(gene_name)
+        if ref_rec is None:
+            ref_seq = ""
+        else:
+            ref_seq = str(ref_rec.seq).upper()
 
         if not ref_seq:
             print(f" Warning: Reference not found for gene **{gene_name}** in {REFERENCE_FILE}, skipping.")
@@ -315,8 +300,8 @@ def main():
 
         try:
             records = list(SeqIO.parse(full_path, "fasta"))
-        except:
-            print(f" Could not read FASTA file: {fasta_file}. Skipping.")
+        except Exception as e:
+            print(f" Could not read FASTA file: {fasta_file}. Skipping. Error: {e}")
             continue
 
         isolates = {}
@@ -416,7 +401,6 @@ def main():
         print(f"   Saved table to {os.path.basename(out_csv)} and alignment log to {os.path.basename(out_align)}")
 
     print("\n Analysis complete! All results saved in:", OUTPUT_DIR)
-
 
 if __name__ == "__main__":
     main()
