@@ -192,31 +192,35 @@ for ISOLATE_NAME in $ALL_ISOLATES; do
         echo "    Warning: BAM file not found at $INPUT_BAM_TO_USE. Skipping $ISOLATE_NAME."
         continue
     fi
-    # ------------------------------------------------------------------------
+    # Check if VCF already exists (skip if it does)
+    if [ -f "$UNPHASED_VCF" ]; then
+        echo "    -> VCF already exists at $UNPHASED_VCF. Skipping variant calling."
+    else
+        # ------------------------------------------------------------------------
 
+        # --- 2.1. VARIANT CALLING WITH GATK (HaplotypeCaller) ---
+        echo "    -> 2.1. Calling variants with GATK (creates $TEMP_VCF_SUFFIX)..."
+        if [ -n "$REGION_FILTER" ]; then
+            echo "    -> CRITICAL: Using region filter: $GENES_LIST"
+        fi
 
-    # --- 2.1. VARIANT CALLING WITH GATK (HaplotypeCaller) ---
-    echo "    -> 2.1. Calling variants with GATK (creates $TEMP_VCF_SUFFIX)..."
-    if [ -n "$REGION_FILTER" ]; then
-        echo "    -> CRITICAL: Using region filter: $GENES_LIST"
-    fi
+        # Use eval to properly expand REGION_FILTER with -L arguments
+        eval "gatk HaplotypeCaller \
+            -R ${GENES_FASTA} \
+            -I ${INPUT_BAM_TO_USE} \
+            -O ${UNPHASED_VCF} \
+            ${REGION_FILTER} \
+            --minimum-mapping-quality 30 \
+            -ploidy 2 \
+            --sample-name \"${ISOLATE_NAME}\" \
+            --min-base-quality-score 20"
 
-    # Use the folder name as --sample-name
-    gatk HaplotypeCaller \
-        -R ${GENES_FASTA} \
-        -I ${INPUT_BAM_TO_USE} \
-        -O ${UNPHASED_VCF} \
-        ${REGION_FILTER} \
-        --minimum-mapping-quality 30 \
-        -ploidy 2 \
-        --sample-name "${ISOLATE_NAME}" \
-        --min-base-quality-score 20
-
-    # Checks if GATK failed before proceeding
-    if [ $? -ne 0 ]; then
-        echo "    CRITICAL GATK ERROR for isolate $ISOLATE_NAME. Skipping phasing/reconstruction."
-        cleanup_temp_files "$ISOLATE_DIR" "$ISOLATE_NAME"
-        continue
+        # Checks if GATK failed before proceeding
+        if [ $? -ne 0 ]; then
+            echo "    CRITICAL GATK ERROR for isolate $ISOLATE_NAME. Skipping phasing/reconstruction."
+            cleanup_temp_files "$ISOLATE_DIR" "$ISOLATE_NAME"
+            continue
+        fi
     fi
 
     # --- DEFINITION OF FILTERING THRESHOLDS (INCLUDES MIN QD AND NEW AF FILTER) ---
