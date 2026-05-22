@@ -9,6 +9,11 @@ set -euo pipefail
 # --- CRITICAL LOCALE FIX: Ensures 'printf' and 'bc' use the dot (.) as a decimal separator ---
 export LC_NUMERIC="C"
 
+# --- GATK CONFIGURATION: Enable native access for modern Java versions (Java 21+) ---
+# Required to suppress warnings about restricted method access in libgkl_compression.so
+export JAVA_TOOL_OPTIONS="-Djdk.lang.processReverseOrder=true"
+export _JAVA_OPTIONS="--enable-native-access=ALL-UNNAMED"
+
 # ---- CONFIGURATION ----
 
 # Allows the user to provide input or prompts if not provided (with default values)
