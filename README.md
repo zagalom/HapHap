@@ -4,7 +4,7 @@
 
 **HapHap** is a comprehensive pipeline for analyzing diploid sequencing data and reconstructing phased haplotypes per gene. It combines robust read mapping, variant calling, filtering, phasing, and final protein-level mutation annotation. The workflow is split into two main components:
 
-1. **Phasing and Haplotype Pipeline (`phasing_pipeline.sh`):**
+1. **Phasing and Haplotype Pipeline (`HapHap.sh`):**
     - Automates mapping (`bwa` + `samtools`), variant calling (`GATK`), and intricate filtering (`bcftools`), followed by read-backed phasing with `WhatsHap`.
     - Produces phased, quality-filtered VCFs and generates FASTA files of reconstructed sequences per haplotype for each gene/isolate.
 
@@ -28,7 +28,7 @@ These programs are fully interoperable and designed for population genomics and 
 
 ## Dependencies
 
-### `phasing_pipeline.sh` (Step 1)
+### `HapHap.sh` (Step 1)
 
 Requires:
 
@@ -79,7 +79,7 @@ cd HapHap
 ### 1. Run the Phasing Pipeline
 
 ```sh
-bash phasing_pipeline.sh <genes_fasta> <results_dir> <fastq_dir> [threads] [genes_list]
+bash HapHap.sh <genes_fasta> <results_dir> <fastq_dir> [threads] [genes_list]
 ```
 
 - `genes_fasta` : Reference genes FASTA file (required)
@@ -90,7 +90,7 @@ bash phasing_pipeline.sh <genes_fasta> <results_dir> <fastq_dir> [threads] [gene
 
 **Example:**
 ```sh
-bash phasing_pipeline.sh ref_genes.fasta HapHap_results samples/ 8 ERG11,GSC1
+bash HapHap.sh ref_genes.fasta HapHap_results samples/ 8 ERG11,GSC1
 ```
 
 This will create phased VCFs and FASTA files per sample and gene in the output directory.
@@ -118,7 +118,7 @@ python haplotype_reconstruction.py HapHap_results/ ref_genes.fasta HapHap_annota
 
 The recommended workflow is:
 
-1. **Run `phasing_pipeline.sh`** to produce sample/gene-level phased haplotype FASTAs.
+1. **Run `HapHap.sh`** to produce sample/gene-level phased haplotype FASTAs.
 2. **Run `haplotype_reconstruction.py`** to annotate every variant (AA, indel, frameshift) in each isolate/gene against the reference.
 
 The shell script automatically calls the Python module for basic FASTA consolidation, but for full mutation profiling, run the Python script as described above.
@@ -192,7 +192,7 @@ It enables researchers to trace each mutation from DNA to its protein effect acr
 ### Workflow Steps
 
 1. **Phasing and Haplotype Reconstruction**  
-   _Script:_ `phasing_pipeline.sh`  
+   _Script:_ `HapHap.sh`  
    - **Input:**  
      - Raw paired-end FASTQ reads  
      - Reference gene FASTA (`genes.fasta`)
@@ -241,7 +241,7 @@ It enables researchers to trace each mutation from DNA to its protein effect acr
 [FASTQ samples]
       |
       v
-[phasing_pipeline.sh]
+[HapHap.sh]
       |
       v
 [phased haplotype FASTAs/VCFs] ---> [haplotype_reconstruction.py] (DNA-level variant summary, optional)
