@@ -142,7 +142,7 @@ The shell script automatically calls the Python module for basic FASTA consolida
 
 ---
 
-## Haplotype Analysis & Protein Variant Consequence: haplotype_analysis.py
+## Haplotype Analysis & Protein Variant Consequence: haplotype_analysis.py and haplotype_analysis_NEW.py
 
 ### Overview
 `haplotype_analysis.py` expands the HapHap pipeline by enabling large-scale, **per-gene and multi-isolate** analysis of haplotype FASTA files. Unlike previous scripts that operate per-sample and focus on nucleotide-level processing, this program processes all genes **across all samples simultaneously**, and predicts the **protein-level consequences** of each mutation.
@@ -161,7 +161,7 @@ The shell script automatically calls the Python module for basic FASTA consolida
 #### Usage
 
 ```bash
-python haplotype_analysis.py <haplotype_fasta_dir> <reference_genes_fasta> <output_dir> [--transl_table N]
+python haplotype_analysis_NEW.py <haplotype_fasta_dir> <reference_genes_fasta> <output_dir> [--transl_table N]
 ```
 - `haplotype_fasta_dir`: Directory containing all per-gene haplotype FASTA files (1 per gene, 2 haplotypes per isolate).
 - `reference_genes_fasta`: Reference CDS (coding DNA sequence) FASTA, used for protein annotation.
