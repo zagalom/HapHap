@@ -105,24 +105,38 @@ fi
 
 mkdir -p "$RESULTS_DIR"
 
-for fq1 in "$FASTQ_DIR"/*_1*.fastq*; do
+# Normalizar o FASTQ_DIR para remover barras duplas no futuro
+FASTQ_DIR_CLEAN=$(echo "$FASTQ_DIR" | sed 's/\/\+$//')
+
+# O loop agora entra corretamente dentro de cada subpasta de isolado
+for fq1 in "$FASTQ_DIR_CLEAN"/*/*_1.fastq*; do
     [ -e "$fq1" ] || continue
+    
+    # Extrai a pasta onde o ficheiro R1 está (ex: /home/.../Done/2018-F1-187)
+    SUB_DIR=$(dirname "$fq1")
+    
+    # Extrai apenas o nome base da amostra limpando o sufixo _1
     SAMPLE=$(basename "$fq1" | sed 's/_1.*//')
-    fq2="$FASTQ_DIR/${SAMPLE}_2.fastq.gz"
-    [ -f "$fq2" ] || fq2="$FASTQ_DIR/${SAMPLE}_2.fastq"
+    
+    # CORREÇÃO CRÍTICA: O fq2 tem de ser procurado dentro da mesma SUB_DIR!
+    fq2="$SUB_DIR/${SAMPLE}_2.fastq.gz"
+    [ -f "$fq2" ] || fq2="$SUB_DIR/${SAMPLE}_2.fastq"
+    
     if [ ! -f "$fq2" ]; then
-        echo "    -> Warning: R2 file (pair) not found for $fq1. Skipping sample $SAMPLE."
+        echo "    -> Warning: R2 file (pair) not found at: $fq2. Skipping sample $SAMPLE."
         continue
     fi
+    
     smdir="$RESULTS_DIR/$SAMPLE"
     mkdir -p "$smdir"
     outbam="$smdir/${SAMPLE}.sorted.bam"
+    
     if [ -s "$outbam" ]; then
         echo "    [$SAMPLE] Sorted BAM exists. Skipping alignment."
         continue
     fi
+    
     echo "    [$SAMPLE] Aligning and sorting with BWA/SAMtools (@RG Header)..."
-    # Adds the appropriate @RG header directly in the bwa mem command
     bwa mem -t "$THREADS" -R "@RG\tID:${SAMPLE}\tSM:${SAMPLE}\tLB:${RG_LB}\tPL:${RG_PL}\tPU:${RG_PU}" "$GENES_FASTA" "$fq1" "$fq2" |
         samtools view -bh -@ "$THREADS" - |
         samtools sort -@ "$THREADS" -o "$outbam"
