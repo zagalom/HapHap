@@ -1,0 +1,10 @@
+genes_fasta: "path/to/reference_genes.fasta"
+fastq_dir: "path/to/fastq_directory"
+results_dir: "results"
+
+threads: 4
+dp_multiplier: 2
+bypass_filter: false
+
+# If you want to restrict it to specific genes (e.g., "ERG11,GSC1,UPC2"), change it here. If it's empty "", it analyze everything.
+genes_list: ""
