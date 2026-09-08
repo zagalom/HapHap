@@ -263,10 +263,11 @@ See LICENSE for MIT terms. For questions/issues/collaborations, please open an i
 
 ## Citation & Contact
 
-Developed by [@zagalom](https://github.com/zagalom)  If you use HapHap, please cite the repository.
+If you use HapHap, please cite the article: Fernandes, M. Z., Maldonado, E., Martinez-de-Oliveira, J., Rolo, J., & Palmeira-de-Oliveira, A. (2026). Lineage-specific adaptation and resistance in candida albicans. Fungal Genetics and Biology, 186, 104116. https://doi.org/10.1016/j.fgb.2026.104116 
+
+Developed by [@zagalom](https://github.com/zagalom) 
 For questions, bug reports, or collaborations, please open [an issue](https://github.com/zagalom/HapHap/issues).
 
-> (Manuscript in preparation).
 
 ---
 
